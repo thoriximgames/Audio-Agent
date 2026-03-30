@@ -26,7 +26,7 @@ To ingest and optimize new audio files:
 
 ### Health Check & Validation
 To verify the integrity of the audio library:
-1. Execute `python project_analyzer.py`.
+1. **Double-click `analyze.bat`** (or execute `python project_analyzer.py` from a terminal).
 2. This script checks for naming violations, format mismatches (e.g., music stored as ogg), and unsupported extensions.
 
 ## 4. Troubleshooting
