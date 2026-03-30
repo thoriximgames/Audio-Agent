@@ -1,0 +1,8 @@
+# Ignore audio assets
+Audio/*.mp3
+Audio/*.ogg
+Audio/*.wav
+Audio/*.flac
+
+# Ignore temp files
+temp_*
