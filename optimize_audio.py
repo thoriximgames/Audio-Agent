@@ -7,6 +7,8 @@ SFX_THRESHOLD = 500  # OGG is fine under 500KB
 MUSIC_THRESHOLD = 1000 # Music should be MP3
 DEFAULT_ARTIST = "Audio Agent"
 DEFAULT_ALBUM = "Project Assets"
+LOUDNESS_TARGET = -16.0
+TRUE_PEAK_LIMIT = -1.5
 
 def clean_filename(filename):
     """
@@ -14,24 +16,24 @@ def clean_filename(filename):
     """
     name, ext = os.path.splitext(filename)
     # Remove special characters and replace spaces/hyphens with underscores
-    name = re.sub(r'[^a-zA-Z0-0\s_-]', '', name)
+    name = re.sub(r'[^a-zA-Z0-9\s_-]', '', name)
     name = re.sub(r'[\s-]+', '_', name).strip('_').lower()
     return f"{name}{ext}"
 
-def run_ffmpeg(input_file, output_file, title):
+def run_ffmpeg(input_file, output_file):
     """
-    Run FFmpeg to convert format, normalize sample rate, and update metadata.
+    Run FFmpeg to convert format, normalize sample rate, normalize loudness, and update metadata.
     """
     try:
-        # Standardize: 44.1kHz, Strip all metadata, Add custom metadata
+        # Standardize: 44.1kHz, Strip all metadata, Add custom metadata, Normalize Loudness
+        # loudnorm=I=-16:TP=-1.5:LRA=11 (EBU R128)
         cmd = [
             "ffmpeg", "-i", input_file, 
+            "-af", f"loudnorm=I={LOUDNESS_TARGET}:TP={TRUE_PEAK_LIMIT}:LRA=11",
             "-ar", "44100", 
             "-map_metadata", "-1", 
-            "-metadata", f"title={title}",
             "-metadata", f"artist={DEFAULT_ARTIST}",
             "-metadata", f"album={DEFAULT_ALBUM}",
-            "-metadata", "comment=Processed by Audio Agent",
             "-y", output_file
         ]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -46,6 +48,10 @@ def process_audio_library(root_dir):
     for subdir, _, files in os.walk(root_dir):
         for file in files:
             file_path = os.path.join(subdir, file)
+            # Skip temp files
+            if file.startswith("temp_"):
+                continue
+                
             size_kb = os.path.getsize(file_path) / 1024
             ext = file.lower().split('.')[-1]
             
@@ -68,20 +74,19 @@ def process_audio_library(root_dir):
             # We always process to ensure metadata and sample rate are correct.
             temp_path = os.path.join(subdir, f"temp_{target_name}")
             
-            title = base_name_clean.replace('_', ' ').title()
-            
             print(f"Processing: {file}")
             print(f"  -> Clean Name: {target_name}")
             print(f"  -> Format:     {target_ext.upper()}")
-            print(f"  -> Title:      {title}")
 
-            if run_ffmpeg(file_path, temp_path, title):
+            if run_ffmpeg(file_path, temp_path):
                 # Remove original if it's different from target or if we just want to replace it
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+                # Be careful if we are processing a file that IS the target name
+                if os.path.abspath(file_path) != os.path.abspath(target_path):
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
                 
-                # If target already exists (e.g. from a previous run or same name), remove it
-                if os.path.exists(target_path):
+                # If target already exists and is not the temp file, remove it
+                if os.path.exists(target_path) and os.path.abspath(target_path) != os.path.abspath(temp_path):
                     os.remove(target_path)
                     
                 os.rename(temp_path, target_path)

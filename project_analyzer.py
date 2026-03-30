@@ -8,6 +8,7 @@ STANDARDS = {
         "music_keywords": ["music", "ambience", "bgm", "track"],
         "music_threshold_kb": 1000,
         "sample_rate": 44100,
+        "loudness_lufs": -16.0,
         "valid_input_exts": [".wav", ".ogg", ".mp3", ".flac"]
     },
     "naming": {

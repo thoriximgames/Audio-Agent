@@ -10,7 +10,7 @@ This environment is designed for the automated processing, normalization, and op
 ## 2. Audio Standards
 - **Sample Rate:** All processed audio MUST be normalized to **44100 Hz**.
 - **Loudness:** All assets MUST be normalized to **-16 LUFS** (Integrated Loudness) with a True Peak of **-1.5 dBTP** using the `loudnorm` filter.
-- **Metadata:** All assets must have clean metadata. Custom tags (Title, Artist: "Audio Agent", Album: "Project Assets") are mandatory.
+- **Metadata:** All assets must have clean metadata. Custom tags (Artist: "Audio Agent", Album: "Project Assets") are mandatory. Title tags should be removed or set to match the filename exactly to ensure a clean asset library.
 - **File Formats:**
     - **SFX:** Use `.ogg` (Vorbis) for sound effects and short clips (generally < 1000KB).
     - **Music/Ambience:** Use `.mp3` for long tracks, background music, or files > 1000KB.
